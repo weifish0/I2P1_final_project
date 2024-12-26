@@ -28,8 +28,8 @@ bool update_bullet(Bullet * bullet, enemyNode * enemyList, Map * map){
         bullet->coord.x += bullet->speed * cos(bullet->angle);
         bullet->coord.y += bullet->speed * sin(bullet->angle);
     */
-    bullet->coord.x += 4;
-    bullet->coord.y += 0;
+    bullet->coord.x += bullet->speed * cos(bullet->angle);
+    bullet->coord.y += bullet->speed * sin(bullet->angle);
     
     /*
         [TODO Hackathon 2-3] 
@@ -41,7 +41,20 @@ bool update_bullet(Bullet * bullet, enemyNode * enemyList, Map * map){
         if(tile_x < 0 || ...  || map->map[tile_x][tile_y] == ...){
             return true;
         }
-    */
+    */    
+    // Check if the bullet is out of the map bounds or collides with a non-walkable tile
+    int tile_x = (int)(bullet->coord.x / TILE_SIZE);
+    int tile_y = (int)(bullet->coord.y / TILE_SIZE);
+    
+    // Check if the bullet is out of bounds
+    if (tile_x < 0 || tile_y < 0 || tile_x >= map->col || tile_y >= map->row) {
+        return true;  // Bullet is out of bounds, so remove it
+    }
+
+    // Check if the bullet collides with a non-walkable tile
+    if (!isWalkable(map->map[tile_y][tile_x])) {
+        return true;  // Bullet hits a non-walkable tile, so remove it
+    }
     
     // Check if the bullet collide with the enemies by simple iterating
     enemyNode * cur = enemyList->next;
@@ -63,6 +76,14 @@ bool update_bullet(Bullet * bullet, enemyNode * enemyList, Map * map){
                 return true;
             }
         */
+        // Check if the bullet hits the enemy (based on the enemy's position and size)
+        if (bullet->coord.x < enemyCoord.x + TILE_SIZE &&
+            bullet->coord.x + TILE_SIZE > enemyCoord.x &&
+            bullet->coord.y < enemyCoord.y + TILE_SIZE &&
+            bullet->coord.y + TILE_SIZE > enemyCoord.y) {
+            hitEnemy(&cur->enemy, bullet->damage, bullet->angle);  // Hit the enemy
+            return true;  // Bullet collides with an enemy
+        }
 
         cur = cur->next;
     }
@@ -130,6 +151,10 @@ void drawBulletList(BulletNode * dummyhead, Point camera){
 }
 
 void destroyBulletList(BulletNode * dummyhead){
+    BulletNode* del = dummyhead;
+    dummyhead = dummyhead->next;
+    free(del); // No Images
+    
     while(dummyhead != NULL){
         BulletNode * del = dummyhead;
         dummyhead = dummyhead->next;

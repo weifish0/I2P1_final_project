@@ -103,10 +103,11 @@ Map create_map(char * path, uint8_t type){
     // load the offset for each tiles type
     get_map_offset(&map);
 
-    map.coin_audio = al_load_sample("Assets/audio/coins.mp3");
+    map.coin_audio = al_load_sample("Assets/audio/coins.wav");
     if(!map.coin_audio){
         game_abort("Can't load coin audio");
     }
+    map.coin_tick = 0;        // 初始計時器
 
     fclose(f);
     
@@ -132,11 +133,18 @@ void draw_map(Map * map, Point cam){
                                   );
 
             switch(map->map[i][j]){
+                case DISAPEARED_COIN:
+                    al_draw_tinted_scaled_bitmap(map->coin_assets, al_map_rgb(255, 255, 255),
+                                                (16 * (map->coin_tick / 4)), 16, 16, 16,
+                                                dx, dy, TILE_SIZE, TILE_SIZE, 0);
+                    if(map->coin_tick == 31){
+                        map->map[i][j] = FLOOR;
+                    }
+                    break;
                 case COIN:
-                    al_draw_scaled_bitmap(map->coin_assets,
-                        0, 0, 16, 16,
-                        dx, dy, TILE_SIZE, TILE_SIZE,
-                        0);
+                    al_draw_tinted_scaled_bitmap(map->coin_assets, al_map_rgb(255, 255, 255),
+                                                (16 * (map->coin_tick / 4)), 0, 16, 16,
+                                                dx, dy, TILE_SIZE, TILE_SIZE, 0);
                     break;
                 default:
                     break;
@@ -156,7 +164,22 @@ void update_map(Map * map, Point player_coord, int* total_coins){
         Hint: To check if it's collide with object in map, you can use tile_collision function
         e.g. to update the coins if you touch it
     */
+    // 循環檢測所有的地圖格子
+    for (int i = 0; i < map->row; i++) {
+        for (int j = 0; j < map->col; j++) {
+            Point tile_coord = { j * TILE_SIZE, i * TILE_SIZE };
 
+            if (map->map[i][j] == COIN && tile_collision(player_coord, tile_coord)) {
+                // 播放金幣音效
+                al_play_sample(map->coin_audio, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+
+                map->coin_tick = 0;
+                map->map[i][j] = DISAPEARED_COIN;
+                (*total_coins)++;
+            }
+        }
+    }
+    map->coin_tick = (map->coin_tick+1) % 32;
 }
 
 void destroy_map(Map * map){
@@ -173,7 +196,7 @@ void destroy_map(Map * map){
 }
 
 bool isWalkable(BLOCK_TYPE block){
-    if(block == FLOOR ||  block == COIN) return true;
+    if(block == FLOOR ||  block == COIN || block == DISAPEARED_COIN) return true;
     return false;
 }
 

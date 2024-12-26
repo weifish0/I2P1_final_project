@@ -23,6 +23,7 @@ typedef enum _BLOCK_TYPE{
     DOOR_CLOSE,
     HOLE,
     COIN,
+    DISAPEARED_COIN,
     NOTHING
 } BLOCK_TYPE;
 
@@ -52,6 +53,7 @@ typedef struct Map_{
     char EnemyCode[MAX_ENEMY_SPAWN];
     uint8_t EnemySpawnSize;
 
+    int coin_tick;       // 用於計時的變數
 } Map;
 
 /*

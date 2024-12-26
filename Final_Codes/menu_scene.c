@@ -10,15 +10,20 @@
 
 static Button settingButton;
 
+static int scene_time_lock;
+
 static void init(void) {
     settingButton = button_create(SCREEN_W / 2 - 200, 600, 400, 100, "Assets/UI_Button.png", "Assets/UI_Button_hovered.png");
-
-    change_bgm("Assets/audio/menu_bgm.mp3");
+    scene_time_lock = 60;
+    change_bgm("Assets/audio/menu_bgm.wav");
 }
 
 static void update(void) {
+    if(scene_time_lock){
+        scene_time_lock--;
+    }
     update_button(&settingButton);
-    if (keyState[ALLEGRO_KEY_ENTER]) {
+    if (keyState[ALLEGRO_KEY_ENTER] && !scene_time_lock) {
         change_scene(create_loading_scene());
     }
 
@@ -27,6 +32,9 @@ static void update(void) {
         
         Change scene to setting scene when the button is pressed
     */
+    if (mouseState.buttons & 1 && settingButton.hovered == true) {
+        change_scene(create_setting_scene());
+    }
 }
 
 static void draw(void) {
@@ -52,7 +60,7 @@ static void draw(void) {
         P2_FONT,
         al_map_rgb(255, 255, 255),
         SCREEN_W / 2,
-        500,
+        550,
         ALLEGRO_ALIGN_CENTER,
         "PRESS [ENTER] TO PLAY"
     );

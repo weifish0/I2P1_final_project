@@ -1,0 +1,3 @@
+/Users/weifish/Desktop/I2P-I-2024_FinalProject/CMakeFiles/Game.dir
+/Users/weifish/Desktop/I2P-I-2024_FinalProject/CMakeFiles/edit_cache.dir
+/Users/weifish/Desktop/I2P-I-2024_FinalProject/CMakeFiles/rebuild_cache.dir

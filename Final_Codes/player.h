@@ -9,7 +9,7 @@
 #include "map.h"
 
 typedef enum {
-    PLAYER_IDLE, PLAYER_WALKING, PLAYER_DYING
+    PLAYER_IDLE, PLAYER_WALKING, PLAYER_DYING, PLAYER_DEAD
 } PLAYER_STATUS;
 
 typedef struct _Player{

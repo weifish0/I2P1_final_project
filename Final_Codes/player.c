@@ -18,6 +18,7 @@ Player create_player(char * path, int row, int col){
     
     player.speed = 4;
     player.health = 50;
+    player.status = PLAYER_IDLE;
     
     player.image = al_load_bitmap(path);
     if(!player.image){
@@ -50,43 +51,39 @@ void update_player(Player * player, Map* map){
         }
     }
     
-    /*
-        [TODO HACKATHON 1-1] 
-        
-        Player Movement
-        Adjust the movement by player->speed
+    if(player->status == PLAYER_DYING){
+    }
+    else if(player->status == PLAYER_DEAD){
+        return;
+    }
+    else if (keyState[ALLEGRO_KEY_W]) {
+        player->coord.y -= player->speed;  // Move up
+        player->direction = UP;
+        player->status = PLAYER_WALKING;
+    }
+    else if (keyState[ALLEGRO_KEY_S]) {
+        player->coord.y += player->speed;  // Move down
+        player->direction = DOWN;
+        player->status = PLAYER_WALKING;
+    }
+    else if (keyState[ALLEGRO_KEY_A]) {
+        player->coord.x -= player->speed;  // Move left
+        player->direction = LEFT;
+        player->status = PLAYER_WALKING;
+    }
+    else if (keyState[ALLEGRO_KEY_D]) {
+        player->coord.x += player->speed;  // Move right
+        player->direction = RIGHT;
+        player->status = PLAYER_WALKING;
+    }
+    else{
+        player->status = PLAYER_IDLE;
+    }
 
-        if (keyState[ALLEGRO_KEY_W]) {
-            player->coord.y = ...
-            player->direction = ...
-        }
-        if (keyState[ALLEGRO_KEY_S]) {
-            player->coord.y = ...
-            player->direction = ...
-        }
-    */
-    
     // if Collide, snap to the grid to make it pixel perfect
     if(isCollision(player, map)){
         player->coord.y = round((float)original.y / (float)TILE_SIZE) * TILE_SIZE;
     }
-    
-    /*
-        [TODO HACKATHON 1-2] 
-        
-        Player Movement
-        Add/Subtract the movement by player->speed
-
-        if (keyState[ALLEGRO_KEY_A]) {
-            player->coord.y = ...
-            player->direction = ...
-        }
-        if (keyState[ALLEGRO_KEY_D]) {
-            player->coord.y = ...
-            player->direction = ...
-
-    }
-    */
     
     if(isCollision(player, map)){
         player->coord.x = round((float)original.x / (float)TILE_SIZE) * TILE_SIZE;
@@ -97,25 +94,52 @@ void update_player(Player * player, Map* map){
         
         Calculate the animation tick to draw animation later
     */
+    if (player->status == PLAYER_IDLE){
+        player->animation_tick = (player->animation_tick+1) % 16;
+    }
+    else if(player->status == PLAYER_WALKING){
+        player->animation_tick = (player->animation_tick+1) % 32;
+    }
+    else if(player->status == PLAYER_DYING){
+        player->animation_tick = (player->animation_tick+1) % 32;
+    }
 }
 
 void draw_player(Player * player, Point cam){
     int dy = player->coord.y - cam.y; // destiny y axis
     int dx = player->coord.x - cam.x; // destiny x axis
     
-    int flag = 0; // Change the flag to flip character
-    
     /*
         [TODO Homework] 
         
         Draw Animation of Dying, Walking, and Idle
     */
-
-    al_draw_tinted_scaled_bitmap(player->image, al_map_rgb(255, 255, 255),
-        0, 0, 32, 32, // source image x, y, width, height
-        dx, dy, TILE_SIZE, TILE_SIZE, // destiny x, y, width, height
-        flag // Flip or not
-    );
+    int offset = 32 * (player->animation_tick / 8);
+    int tint_red = player->knockback_CD > 0 ? 0 : 255;
+    int flag = 0;
+    if (player->status == PLAYER_IDLE) {
+        // 閒置狀態的動畫
+        al_draw_tinted_scaled_bitmap(player->image, al_map_rgb(255, tint_red, tint_red),
+            offset, 0, 32, 32,
+            dx, dy, TILE_SIZE, TILE_SIZE,
+            flag);
+    }
+    else if (player->status == PLAYER_DYING) {
+        // 死亡狀態的動畫，這裡用圓形來表示死亡動畫
+        al_draw_tinted_scaled_bitmap(player->image, al_map_rgb(255, tint_red, tint_red),
+            offset, 64, 32, 32,
+            dx, dy, TILE_SIZE, TILE_SIZE,
+            flag);
+        if(player->animation_tick == 31){
+            player->status = PLAYER_DEAD;
+        }
+    }
+    else if (player->status == PLAYER_WALKING){
+        al_draw_tinted_scaled_bitmap(player->image, al_map_rgb(255, tint_red, tint_red),
+            offset, 32, 32, 32,
+            dx, dy, TILE_SIZE, TILE_SIZE,
+            flag);
+    }
 
     
 #ifdef DRAW_HITBOX
@@ -154,6 +178,17 @@ static bool isCollision(Player* player, Map* map){
         if(!isWalkable(map->map[...][...])) return true;
 
     */
+    // Check every corner of the player (player's bounding box)
+    int player_left = player->coord.x / TILE_SIZE;
+    int player_right = (player->coord.x + TILE_SIZE - 1) / TILE_SIZE;
+    int player_top = player->coord.y / TILE_SIZE;
+    int player_bottom = (player->coord.y + TILE_SIZE - 1) / TILE_SIZE;
+
+    // Check the four corners (top-left, top-right, bottom-left, bottom-right)
+    if (!isWalkable(map->map[player_top][player_left])) return true;
+    if (!isWalkable(map->map[player_top][player_right])) return true;
+    if (!isWalkable(map->map[player_bottom][player_left])) return true;
+    if (!isWalkable(map->map[player_bottom][player_right])) return true;
     
     return false;
 }
@@ -181,5 +216,14 @@ void hitPlayer(Player * player, Point enemy_coord, int damage){
                 ...
             }
         */
+        player->knockback_angle = angle;
+        player->knockback_CD = 32;
+        player->health -= damage;
+        if(player->health <= 0){
+            player->health = 0;
+            player->animation_tick = 0;
+            player->status = PLAYER_DYING;
+        }
+
     }
 }

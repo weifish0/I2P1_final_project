@@ -82,7 +82,14 @@ bool updateEnemy(Enemy * enemy, Map * map, Player * player){
             
             Configure the death animation tick for dying animation,
             Return true when the enemy is dead
-        */ 
+        */
+        enemy->death_animation_tick++;
+        int basic_frames = 8;
+        int pictures_count = 8;
+        if (enemy->death_animation_tick >= basic_frames * pictures_count) {
+            enemy->status = DEAD;
+            return true;
+        }
     }
     
     if(enemy->status != ALIVE) return false;
@@ -117,8 +124,8 @@ bool updateEnemy(Enemy * enemy, Map * map, Player * player){
             Replace delta variable with the function below to start enemy movement
             Point delta = shortestPath(map, enemy->coord, player->coord);
         */
+        Point delta = shortestPath(map, enemy->coord, player->coord);
 
-        Point delta = (Point){ 0, 0 };
         Point next, prev = enemy->coord;
         
         if(delta.x > 0) enemy->dir = RIGHT;
@@ -180,6 +187,14 @@ void drawEnemy(Enemy * enemy, Point cam){
 
             Draw Dying Animation for enemy
         */
+        int offset = 16 * (int)(enemy->death_animation_tick / 8);
+        int flag = enemy->dir == RIGHT ? 1 : 0;
+        int tint_red = enemy->knockback_CD > 0 ? 255 : 0;
+        if (enemy->type == slime) {
+            al_draw_tinted_scaled_rotated_bitmap_region(enemy->image, offset, 16, 16, 16, al_map_rgb(tint_red, 255, 255),
+                0, 0, dx, dy, TILE_SIZE / 16, TILE_SIZE / 16,
+                0, flag);
+        }
     }
     
 #ifdef DRAW_HITBOX
@@ -210,6 +225,11 @@ void hitEnemy(Enemy * enemy, int damage, float angle){
             enemy->status = DYING;
         }
     */
+   enemy->health -= 5*damage;
+   if(enemy->health <= 0){
+        enemy->health = 0;
+        enemy->status = DYING;
+   }
 
     enemy->knockback_angle = angle;
     enemy->knockback_CD = 16;
@@ -462,6 +482,17 @@ static bool isCollision(Point enemyCoord, Map* map){
         if(!isWalkable(map->map[...][...])) return true;
         if(!isWalkable(map->map[...][...])) return true;
     */
+    // Check every corner of the enemy (enemy's bounding box)
+    int enemy_left = enemyCoord.x / TILE_SIZE;
+    int enemy_right = (enemyCoord.x + TILE_SIZE - 1) / TILE_SIZE;
+    int enemy_top = enemyCoord.y / TILE_SIZE;
+    int enemy_bottom = (enemyCoord.y + TILE_SIZE - 1) / TILE_SIZE;
+
+    // Check the four corners (top-left, top-right, bottom-left, bottom-right)
+    if (!isWalkable(map->map[enemy_top][enemy_left])) return true;
+    if (!isWalkable(map->map[enemy_top][enemy_right])) return true;
+    if (!isWalkable(map->map[enemy_bottom][enemy_left])) return true;
+    if (!isWalkable(map->map[enemy_bottom][enemy_right])) return true;
 
     return false;
 }
