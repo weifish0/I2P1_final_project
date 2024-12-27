@@ -167,7 +167,6 @@ static void update(void){
     update_weapon(&weapon, bulletList, player.coord, Camera);
     updateBulletList(bulletList, enemyList, &map);
     update_map(&map, player.coord, &coins_obtained);
-    
 }
 
 static void draw(void){
@@ -187,10 +186,6 @@ static void draw(void){
         
         Draw the UI of Health and Total Coins
     */
-    // char health_display[20];
-    // char coins_display[20];
-    // sprintf(health_display, "health: %02d", player.health);
-    // sprintf(coins_display, "coins: %02d", coins_obtained);
 
     int info_chunk_dx = 60;
     int info_chunk_dy = 50;
@@ -274,6 +269,18 @@ Scene create_game_scene(void){
     return scene;
 }
 
+Scene create_lose_scene(void){
+    Scene scene;
+    memset(&scene, 0, sizeof(Scene));
+    
+    scene.name = "lose_scene";
+    scene.init = &init_lose_scene;
+    scene.draw = &draw_lose_scene;
+    scene.update = &update_lose_scene;
+    scene.destroy = &destroy_lose_scene;
+    
+    return scene;
+}
 
 Scene create_win_scene(void){
     Scene scene;
@@ -284,19 +291,6 @@ Scene create_win_scene(void){
     scene.draw = &draw_win_scene;
     scene.update = &update_win_scene;
     scene.destroy = &destroy_win_scene;
-    
-    return scene;
-}
-
-Scene create_lose_scene(void){
-    Scene scene;
-    memset(&scene, 0, sizeof(Scene));
-    
-    scene.name = "lose_scene";
-    scene.init = &init_lose_scene;
-    scene.draw = &draw_lose_scene;
-    scene.update = &update_lose_scene;
-    scene.destroy = &destroy_lose_scene;
     
     return scene;
 }

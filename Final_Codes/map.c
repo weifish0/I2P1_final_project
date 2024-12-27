@@ -171,8 +171,7 @@ void update_map(Map * map, Point player_coord, int* total_coins){
 
             if (map->map[i][j] == COIN && tile_collision(player_coord, tile_coord)) {
                 // 播放金幣音效
-                al_play_sample(map->coin_audio, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
-
+                al_play_sample(map->coin_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                 map->coin_tick = 0;
                 map->map[i][j] = DISAPEARED_COIN;
                 (*total_coins)++;
