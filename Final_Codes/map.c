@@ -85,6 +85,10 @@ Map create_map(char * path, uint8_t type){
                     heal_potion_counter++;
                     break;
 
+                case 'B': // Boots
+                    map.map[i][j] = BOOTS;
+                    break;
+
                 case '_': // Nothing
                     map.map[i][j] = HOLE;
                     break;
@@ -110,6 +114,11 @@ Map create_map(char * path, uint8_t type){
     if (!map.heal_potion_assets) {
         game_abort("Can't load heal potion assets");
     }
+
+    map.boots_assets = al_load_bitmap("Assets/boots.png");
+    if(!map.boots_assets){
+        game_abort("Can't load boots assets");
+    }
     
     // load the offset for each tiles type
     get_map_offset(&map);
@@ -122,6 +131,11 @@ Map create_map(char * path, uint8_t type){
     map.heal_potion_audio = al_load_sample("Assets/audio/heal_potion.wav");
     if(!map.heal_potion_audio){
         game_abort("Can't load heal potion audio");
+    }
+
+    map.boots_audio = al_load_sample("Assets/audio/boots.wav");
+    if(!map.boots_audio){
+        game_abort("Can't load boots audio");
     }
 
     map.coin_tick = 0;        // 初始計時器
@@ -169,6 +183,11 @@ void draw_map(Map * map, Point cam){
                                                 0, 0, 32, 32,
                                                 dx, dy, TILE_SIZE, TILE_SIZE, 0);
                     break;
+                case BOOTS:
+                    al_draw_tinted_scaled_bitmap(map->boots_assets, al_map_rgb(255, 255, 255),
+                                                0, 0, 32, 32,
+                                                dx, dy, TILE_SIZE, TILE_SIZE, 0);
+                    break;
                 default:
                     break;
             }
@@ -182,7 +201,7 @@ void draw_map(Map * map, Point cam){
     }
 }
 
-void update_map(Map * map, Point player_coord, int* total_coins, int* player_health){
+void update_map(Map * map, Point player_coord, int* total_coins, int* player_health, int* player_speed){
     /*
         Hint: To check if it's collide with object in map, you can use tile_collision function
         e.g. to update the coins if you touch it
@@ -202,7 +221,12 @@ void update_map(Map * map, Point player_coord, int* total_coins, int* player_hea
             else if(map->map[i][j] == HEAL_POTION && tile_collision(player_coord, tile_coord)){
                 al_play_sample(map->heal_potion_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                 map->map[i][j] = FLOOR;
-                (*player_health) += 10;
+                *player_health += 20;
+            }
+            else if(map->map[i][j] == BOOTS && tile_collision(player_coord, tile_coord)){
+                al_play_sample(map->boots_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                map->map[i][j] = FLOOR;
+                *player_speed *= 2;
             }
         }
     }
@@ -220,12 +244,15 @@ void destroy_map(Map * map){
     al_destroy_bitmap(map->assets);
     al_destroy_bitmap(map->coin_assets);
     al_destroy_bitmap(map->heal_potion_assets);
+    al_destroy_bitmap(map->boots_assets);
+
     al_destroy_sample(map->coin_audio);
     al_destroy_sample(map->heal_potion_audio);
+    al_destroy_sample(map->boots_audio);
 }
 
 bool isWalkable(BLOCK_TYPE block){
-    if(block == FLOOR ||  block == COIN || block == DISAPEARED_COIN || block == HEAL_POTION) return true;
+    if(block == FLOOR ||  block == COIN || block == DISAPEARED_COIN || block == HEAL_POTION || block == BOOTS) return true;
     return false;
 }
 
@@ -434,6 +461,9 @@ static void get_map_offset(Map * map){
                     map->offset_assets[i][j] = get_floor_offset_assets(map, i, j);
                     break;
                 case HEAL_POTION:
+                    map->offset_assets[i][j] = get_floor_offset_assets(map, i, j);
+                    break;
+                case BOOTS:
                     map->offset_assets[i][j] = get_floor_offset_assets(map, i, j);
                     break;
                 case HOLE:
