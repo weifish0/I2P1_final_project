@@ -23,6 +23,7 @@ typedef enum _BLOCK_TYPE{
     DOOR_CLOSE,
     HOLE,
     COIN,
+    HEAL_POTION,
     DISAPEARED_COIN,
     NOTHING
 } BLOCK_TYPE;
@@ -43,9 +44,13 @@ typedef struct Map_{
     // Map assets
     ALLEGRO_BITMAP* assets;
     ALLEGRO_BITMAP* coin_assets;
+    ALLEGRO_BITMAP* heal_potion_assets;
 
     // Coin Properties
     ALLEGRO_SAMPLE* coin_audio;
+
+    // Heal Potion Properties
+    ALLEGRO_SAMPLE* heal_potion_audio;
     
     // Spawn Coordinate
     Point Spawn;
@@ -54,6 +59,7 @@ typedef struct Map_{
     uint8_t EnemySpawnSize;
 
     int coin_tick;       // 用於計時的變數
+    int total_coins;
 } Map;
 
 /*
@@ -62,7 +68,7 @@ typedef struct Map_{
  */
 Map create_map(char * path, uint8_t type); // Create a map based on given file path
 void draw_map(Map * map, Point cam); // Draw the map
-void update_map(Map * map, Point player_coord, int * total_coins); // Update map : you might want add some parameter here
+void update_map(Map * map, Point player_coord, int * total_coins, int* player_health); // Update map : you might want add some parameter here
 void destroy_map(Map * map); // Destroy map
 
 bool isWalkable(BLOCK_TYPE block);

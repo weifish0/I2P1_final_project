@@ -5,14 +5,13 @@
 
 #include <math.h>
 
-Weapon create_weapon(char * weapon_path, char * bullet_path, int cooldown, int speed, int damage){
+Weapon create_weapon(char * weapon_path, char * bullet_path, char * audio_path, int cooldown, int speed, int damage){
     Weapon weapon;
     weapon.image = al_load_bitmap(weapon_path);
     if(!weapon.image){
         game_abort("Failed to load Image %s", weapon_path);
     }
     
-    const char* audio_path = "Assets/audio/shooting.wav";
     weapon.shooting_audio = al_load_sample(audio_path);
     if(!weapon.shooting_audio){
         game_abort("Failed to load Audio %s", audio_path);

@@ -19,6 +19,7 @@ Player create_player(char * path, int row, int col){
     player.speed = 4;
     player.health = 50;
     player.status = PLAYER_IDLE;
+    player.hurt_audio = al_load_sample("Assets/audio/hurt.wav");
     
     player.image = al_load_bitmap(path);
     if(!player.image){
@@ -195,6 +196,7 @@ static bool isCollision(Player* player, Map* map){
 
 void hitPlayer(Player * player, Point enemy_coord, int damage){
     if(player->knockback_CD == 0){
+        al_play_sample(player->hurt_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
         float dY = player->coord.y - enemy_coord.y;
         float dX = player->coord.x - enemy_coord.x;
         float angle = atan2(dY, dX);
@@ -219,6 +221,7 @@ void hitPlayer(Player * player, Point enemy_coord, int damage){
         player->knockback_angle = angle;
         player->knockback_CD = 32;
         player->health -= damage;
+
         if(player->health <= 0){
             player->health = 0;
             player->animation_tick = 0;

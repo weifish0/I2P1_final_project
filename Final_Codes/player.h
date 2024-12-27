@@ -26,6 +26,7 @@ typedef struct _Player{
 
     PLAYER_STATUS status;
 
+    ALLEGRO_SAMPLE *hurt_audio;
 } Player;
 
 Player create_player(char * path,int row,int col);

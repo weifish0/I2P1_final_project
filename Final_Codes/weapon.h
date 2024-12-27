@@ -21,7 +21,7 @@ typedef struct _Weapon{
     int damage;
 } Weapon;
 
-Weapon create_weapon(char* weapon_path, char* bullet_path, int cooldown, int speed, int damage);
+Weapon create_weapon(char* weapon_path, char* bullet_path, char* audio_path, int cooldown, int speed, int damage);
 void update_weapon(Weapon * weapon, BulletNode * bulletList, Point playerCoord, Point cam);
 void draw_weapon(Weapon * weapon, Point playerCoord, Point cam);
 void delete_weapon(Weapon * weapon);

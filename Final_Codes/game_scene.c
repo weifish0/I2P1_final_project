@@ -18,6 +18,11 @@ BulletNode * bulletList; // Bullet List
 
 // Weapon
 Weapon weapon; 
+Weapon normal_gun; 
+Weapon sniper;
+int weapon_id;
+int weapon_time_lock;
+
 int coins_obtained = 0;
 
 ALLEGRO_BITMAP* lose_image;
@@ -131,7 +136,11 @@ static void init(void){
     enemyList = createEnemyList();
     bulletList = createBulletList();
 
-    weapon = create_weapon("Assets/guns.png", "Assets/yellow_bullet.png", 16, 8, 10);
+    normal_gun = create_weapon("Assets/guns.png", "Assets/yellow_bullet.png", "Assets/audio/shooting.wav", 16, 8, 10);
+    sniper = create_weapon("Assets/sniper.png", "Assets/orange_bullet.png", "Assets/audio/sniper.wav", 32, 14, 30);
+
+    weapon = normal_gun;
+    weapon_id = 0;
     
     for(int i=0; i<map.EnemySpawnSize; i++){
         Enemy enemy = createEnemy(map.EnemySpawn[i].x, map.EnemySpawn[i].y, map.EnemyCode[i]);
@@ -148,13 +157,29 @@ static void update(void){
         
         Change the scene if winning/losing to win/lose scene
     */
+    if(weapon_time_lock){
+        weapon_time_lock--;
+    }
+
     if(player.status == PLAYER_DEAD){
         change_scene(create_lose_scene());
         return;
     }
-    if(coins_obtained == 4){
+    if(coins_obtained == map.total_coins){
         change_scene(create_win_scene());
         return;
+    }
+
+    if(keyState[ALLEGRO_KEY_G] && !weapon_time_lock){
+        weapon_time_lock = 60;
+        if(!weapon_id){
+            weapon_id = 1;
+            weapon = sniper;
+        }
+        else{
+            weapon_id = 0;
+            weapon = normal_gun;
+        }
     }
 
     update_player(&player, &map);
@@ -166,7 +191,7 @@ static void update(void){
     updateEnemyList(enemyList, &map, &player);
     update_weapon(&weapon, bulletList, player.coord, Camera);
     updateBulletList(bulletList, enemyList, &map);
-    update_map(&map, player.coord, &coins_obtained);
+    update_map(&map, player.coord, &coins_obtained, &player.health);
 }
 
 static void draw(void){
@@ -194,7 +219,7 @@ static void draw(void){
 
     heart_image = al_load_bitmap("Assets/heart.png");
     if (!heart_image) {
-        game_abort("Failed to load coin or health icon!");
+        game_abort("Failed to load heart icon!");
     }
     else{
         int heart_width = al_get_bitmap_width(heart_image);
@@ -219,7 +244,7 @@ static void draw(void){
     
     coin_image = al_load_bitmap("Assets/coin_icon.png");
     if (!coin_image) {
-        game_abort("Failed to load coin or health icon!");
+        game_abort("Failed to load coin icon!");
     }
     else{
         int coin_width = al_get_bitmap_width(coin_image);
@@ -248,7 +273,8 @@ static void draw(void){
 
 static void destroy(void){
     delete_player(&player);
-    delete_weapon(&weapon);
+    delete_weapon(&normal_gun);
+    delete_weapon(&sniper);
     destroy_map(&map);
     destroyBulletList(bulletList);
     destroyEnemyList(enemyList);

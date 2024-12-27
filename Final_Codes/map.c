@@ -46,6 +46,7 @@ Map create_map(char * path, uint8_t type){
     }
 
     int coin_counter = 0;
+    int heal_potion_counter = 0;
     
     // Scan the map to the array
     int door_counter = 0;
@@ -79,6 +80,11 @@ Map create_map(char * path, uint8_t type){
                     coin_counter++;
                     break;
 
+                case 'H': // Heal Potion
+                    map.map[i][j] = HEAL_POTION;
+                    heal_potion_counter++;
+                    break;
+
                 case '_': // Nothing
                     map.map[i][j] = HOLE;
                     break;
@@ -99,6 +105,11 @@ Map create_map(char * path, uint8_t type){
     if (!map.coin_assets) {
         game_abort("Can't load coin assets");
     }
+
+    map.heal_potion_assets = al_load_bitmap("Assets/heal_potion.png");
+    if (!map.heal_potion_assets) {
+        game_abort("Can't load heal potion assets");
+    }
     
     // load the offset for each tiles type
     get_map_offset(&map);
@@ -107,7 +118,14 @@ Map create_map(char * path, uint8_t type){
     if(!map.coin_audio){
         game_abort("Can't load coin audio");
     }
+
+    map.heal_potion_audio = al_load_sample("Assets/audio/heal_potion.wav");
+    if(!map.heal_potion_audio){
+        game_abort("Can't load heal potion audio");
+    }
+
     map.coin_tick = 0;        // 初始計時器
+    map.total_coins = coin_counter; // 計算金幣總數
 
     fclose(f);
     
@@ -146,6 +164,11 @@ void draw_map(Map * map, Point cam){
                                                 (16 * (map->coin_tick / 4)), 0, 16, 16,
                                                 dx, dy, TILE_SIZE, TILE_SIZE, 0);
                     break;
+                case HEAL_POTION:
+                    al_draw_tinted_scaled_bitmap(map->heal_potion_assets, al_map_rgb(255, 255, 255),
+                                                0, 0, 32, 32,
+                                                dx, dy, TILE_SIZE, TILE_SIZE, 0);
+                    break;
                 default:
                     break;
             }
@@ -159,7 +182,7 @@ void draw_map(Map * map, Point cam){
     }
 }
 
-void update_map(Map * map, Point player_coord, int* total_coins){
+void update_map(Map * map, Point player_coord, int* total_coins, int* player_health){
     /*
         Hint: To check if it's collide with object in map, you can use tile_collision function
         e.g. to update the coins if you touch it
@@ -176,6 +199,11 @@ void update_map(Map * map, Point player_coord, int* total_coins){
                 map->map[i][j] = DISAPEARED_COIN;
                 (*total_coins)++;
             }
+            else if(map->map[i][j] == HEAL_POTION && tile_collision(player_coord, tile_coord)){
+                al_play_sample(map->heal_potion_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+                map->map[i][j] = FLOOR;
+                (*player_health) += 10;
+            }
         }
     }
     map->coin_tick = (map->coin_tick+1) % 32;
@@ -191,11 +219,13 @@ void destroy_map(Map * map){
 
     al_destroy_bitmap(map->assets);
     al_destroy_bitmap(map->coin_assets);
+    al_destroy_bitmap(map->heal_potion_assets);
     al_destroy_sample(map->coin_audio);
+    al_destroy_sample(map->heal_potion_audio);
 }
 
 bool isWalkable(BLOCK_TYPE block){
-    if(block == FLOOR ||  block == COIN || block == DISAPEARED_COIN) return true;
+    if(block == FLOOR ||  block == COIN || block == DISAPEARED_COIN || block == HEAL_POTION) return true;
     return false;
 }
 
@@ -400,7 +430,12 @@ static void get_map_offset(Map * map){
                 case COIN:
                     map->offset_assets[i][j] = get_floor_offset_assets(map, i, j);
                     break;
-
+                case DISAPEARED_COIN:
+                    map->offset_assets[i][j] = get_floor_offset_assets(map, i, j);
+                    break;
+                case HEAL_POTION:
+                    map->offset_assets[i][j] = get_floor_offset_assets(map, i, j);
+                    break;
                 case HOLE:
                     map->offset_assets[i][j] = get_hole_offset_assets(map, i, j);
                     break;

@@ -225,7 +225,7 @@ void hitEnemy(Enemy * enemy, int damage, float angle){
             enemy->status = DYING;
         }
     */
-   enemy->health -= 5*damage;
+   enemy->health -= damage;
    if(enemy->health <= 0){
         enemy->health = 0;
         enemy->status = DYING;
