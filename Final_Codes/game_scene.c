@@ -110,6 +110,9 @@ static void init_win_scene(void){
 
 static void update_win_scene(void){
     if(keyState[ALLEGRO_KEY_ENTER]){
+        change_scene(create_leaderboard_scene(coins_obtained));
+    }
+    else if(keyState[ALLEGRO_KEY_ESCAPE]){
         change_scene(create_menu_scene());
     }
 }
@@ -142,7 +145,8 @@ static void draw_win_scene(void){
         );
     }
     al_draw_text(TITLE_FONT, al_map_rgb(0, 200, 0), SCREEN_W / 2, SCREEN_H / 2 + 100, ALLEGRO_ALIGN_CENTER, "You Win");
-    al_draw_text(P3_FONT, al_map_rgb(255, 155, 0), SCREEN_W / 2, SCREEN_H / 2 + 200, ALLEGRO_ALIGN_CENTER, "Press Enter to Go Back to Menu");
+    al_draw_text(P3_FONT, al_map_rgb(255, 155, 0), SCREEN_W / 2, SCREEN_H / 2 + 200, ALLEGRO_ALIGN_CENTER, "Press Enter to submit your score");
+    al_draw_text(P3_FONT, al_map_rgb(255, 155, 0), SCREEN_W / 2, SCREEN_H / 2 + 260, ALLEGRO_ALIGN_CENTER, "Press Esc to Go Back Menu Page");
 }
 
 static void destroy_win_scene(void){
@@ -268,10 +272,16 @@ static void update(void){
         change_scene(create_lose_scene());
         return;
     }
-    if(!map.win_game){
+    
+    if(enemyList->next == NULL){
         change_scene(create_win_scene());
         return;
     }
+    else if(!map.win_game){
+        change_scene(create_win_scene());
+        return;
+    }
+
 
     if(keyState[ALLEGRO_KEY_G] && !weapon_time_lock){
         weapon_time_lock = 60;
