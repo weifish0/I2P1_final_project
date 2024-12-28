@@ -140,6 +140,7 @@ Map create_map(char * path, uint8_t type){
 
     map.coin_tick = 0;        // 初始計時器
     map.total_coins = coin_counter; // 計算金幣總數
+    map.win_game = coin_counter;
 
     fclose(f);
     
@@ -217,11 +218,12 @@ void update_map(Map * map, Point player_coord, int* total_coins, int* player_hea
                 map->coin_tick = 0;
                 map->map[i][j] = DISAPEARED_COIN;
                 (*total_coins)++;
+                map->win_game--;
             }
             else if(map->map[i][j] == HEAL_POTION && tile_collision(player_coord, tile_coord)){
                 al_play_sample(map->heal_potion_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                 map->map[i][j] = FLOOR;
-                *player_health += 20;
+                *player_health += 5;
             }
             else if(map->map[i][j] == BOOTS && tile_collision(player_coord, tile_coord)){
                 al_play_sample(map->boots_audio, SFX_VOLUME, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);

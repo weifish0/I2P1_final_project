@@ -20,10 +20,7 @@ const int SLIDER_HANDLE_RADIUS = 20; // 滑塊的半徑
 
 bool is_dragging = false; // 滑塊是否被拖動
 
-static void update_slider() {
-    // 取得滑鼠狀態
-    al_get_mouse_state(&mouseState);
-
+static void update_slider(void) {
     int mouse_x = mouseState.x;
     int mouse_y = mouseState.y;
 

@@ -7,6 +7,8 @@
 
 static bool isCollision(Player* player, Map* map);
 
+extern bool shop_opening;
+
 Player create_player(char * path, int row, int col){
     Player player;
     memset(&player, 0, sizeof(player));
@@ -16,7 +18,7 @@ Player create_player(char * path, int row, int col){
         row * TILE_SIZE
     };
     
-    player.speed = 4;
+    player.speed = 2;
     player.health = 50;
     player.status = PLAYER_IDLE;
     player.hurt_audio = al_load_sample("Assets/audio/hurt.wav");
@@ -55,6 +57,9 @@ void update_player(Player * player, Map* map){
     if(player->status == PLAYER_DYING){
     }
     else if(player->status == PLAYER_DEAD){
+        return;
+    }
+    else if(shop_opening){
         return;
     }
     else if (keyState[ALLEGRO_KEY_W]) {
@@ -117,7 +122,7 @@ void draw_player(Player * player, Point cam){
     */
     int offset = 32 * (player->animation_tick / 8);
     int tint_red = player->knockback_CD > 0 ? 0 : 255;
-    int flag = 0;
+    int flag = player->direction == RIGHT ? 1 : 0;;
     if (player->status == PLAYER_IDLE) {
         // 閒置狀態的動畫
         al_draw_tinted_scaled_bitmap(player->image, al_map_rgb(255, tint_red, tint_red),

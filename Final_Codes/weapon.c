@@ -5,6 +5,8 @@
 
 #include <math.h>
 
+extern bool shop_opening;
+
 Weapon create_weapon(char * weapon_path, char * bullet_path, char * audio_path, int cooldown, int speed, int damage){
     Weapon weapon;
     weapon.image = al_load_bitmap(weapon_path);
@@ -34,7 +36,7 @@ void update_weapon(Weapon * weapon, BulletNode * bulletList, Point playerCoord, 
     weapon->angle = -atan2(dX, dY) + M_PI_2;
     
     // If mouse pressed, shoot
-    if(mouseState.buttons & 1 && weapon->cooldown_counter == 0){
+    if(mouseState.buttons && weapon->cooldown_counter == 0 && !shop_opening){
         weapon->cooldown_counter = weapon->cooldown;
         PointFloat center = (PointFloat){playerCoord.x + TILE_SIZE / 2, playerCoord.y + TILE_SIZE / 2};
         Bullet bullet = create_bullet(weapon->bullet_path, center, weapon->angle, weapon->speed, weapon->damage);

@@ -65,6 +65,7 @@ typedef struct Map_{
 
     int coin_tick;       // 用於計時的變數
     int total_coins;
+    int win_game;
 } Map;
 
 /*

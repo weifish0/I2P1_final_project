@@ -32,7 +32,7 @@ static void update(void) {
         
         Change scene to setting scene when the button is pressed
     */
-    if (mouseState.buttons & 1 && settingButton.hovered == true) {
+    if (mouseState.buttons && settingButton.hovered) {
         change_scene(create_setting_scene());
     }
 }

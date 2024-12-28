@@ -26,6 +26,7 @@ static bool isCollision(Point enemyCoord, Map* map);
 // Return true if player collide with enemy
 static bool playerCollision(Point enemyCoord, Point playerCoord);
 
+extern bool shop_opening;
 
 void initEnemy(void){
     // For memory efficiency, we load the image once
@@ -124,7 +125,10 @@ bool updateEnemy(Enemy * enemy, Map * map, Player * player){
             Replace delta variable with the function below to start enemy movement
             Point delta = shortestPath(map, enemy->coord, player->coord);
         */
-        Point delta = shortestPath(map, enemy->coord, player->coord);
+        Point delta = {0,0};
+        if(!shop_opening){
+            delta = shortestPath(map, enemy->coord, player->coord);
+        }
 
         Point next, prev = enemy->coord;
         
@@ -166,14 +170,13 @@ void drawEnemy(Enemy * enemy, Point cam){
 
     int dy = enemy->coord.y - cam.y; // destiny y axis
     int dx = enemy->coord.x - cam.x; // destiny x axis
-
+    int flag = enemy->dir == RIGHT ? 1 : 0;
+    int tint_red = enemy->knockback_CD > 0 ? 255 : 0;
     if(enemy->status == ALIVE){
         int offset = 16 * (int)(enemy->animation_tick / 8);
         if(enemy->animation_hit_tick > 0){
             offset += 16 * 8;
         }
-        int flag = enemy->dir == RIGHT ? 1 : 0;
-        int tint_red = enemy->knockback_CD > 0 ? 255 : 0;
         
         if (enemy->type == slime) {
             al_draw_tinted_scaled_rotated_bitmap_region(enemy->image, offset, 0, 16, 16, al_map_rgb(tint_red, 255, 255),
@@ -188,8 +191,7 @@ void drawEnemy(Enemy * enemy, Point cam){
             Draw Dying Animation for enemy
         */
         int offset = 16 * (int)(enemy->death_animation_tick / 8);
-        int flag = enemy->dir == RIGHT ? 1 : 0;
-        int tint_red = enemy->knockback_CD > 0 ? 255 : 0;
+        
         if (enemy->type == slime) {
             al_draw_tinted_scaled_rotated_bitmap_region(enemy->image, offset, 16, 16, 16, al_map_rgb(tint_red, 255, 255),
                 0, 0, dx, dy, TILE_SIZE / 16, TILE_SIZE / 16,
